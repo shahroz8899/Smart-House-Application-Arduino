@@ -1,0 +1,81 @@
+#include <SoftwareSerial.h>
+ #include<string.h>
+SoftwareSerial mySerial(2,3);//Rx,Tx
+void setup()
+{
+  pinMode(13,OUTPUT);
+  pinMode(12,OUTPUT);
+  pinMode(9,INPUT);
+  mySerial.begin(9600);   // Setting the baud rate of GSM Module  
+  Serial.begin(9600);    // Setting the baud rate of Serial Monitor (Arduino)
+  delay(100);
+  
+  mySerial.println("AT+CMGF=1");    //Sets the GSM Module in Text Mode
+  delay(1000); 
+ mySerial.println("AT+CNMI=2,2,0,0,0\r"); // AT Command to receive a live SMS
+ delay(1000);
+  mySerial.println("AT+CMGDA=\r");
+  delay(1000);
+  Serial.println("DEL ALL");
+}
+void loop()
+{
+ int i=0;
+ char data[200]="";
+ char ch;
+ while(1)
+ {
+  if(digitalRead(9)==LOW)
+  {
+    call();
+  }
+  if(mySerial.available())
+  {
+   while(mySerial.available()<=0);
+   //Serial.println("Hi");
+   ch=mySerial.read();
+   if(ch=='#')
+   break;
+   data[i]=data[i]+ch;
+   i++;
+ }
+ }
+ Serial.println(data);
+ if(strstr(data,"relay1on"))
+ {
+  Serial.println("Relay 1 ON");
+  digitalWrite(13,HIGH);
+ }
+ if(strstr(data,"relay1off"))
+ {
+  Serial.println("Relay 1 OFF");
+  digitalWrite(13,LOW);
+ }
+ 
+ if(strstr(data,"relay2on"))
+ {
+  Serial.println("Relay 2 ON");
+  digitalWrite(12,HIGH);
+ }
+ if(strstr(data,"relay2off"))
+ {
+  Serial.println("Relay 2 OFF");
+  digitalWrite(12,LOW);
+ }
+}
+void call()
+ {
+  if(digitalRead(9)==LOW)
+  {
+   Serial.println("diling......");
+   mySerial.print("AT\r");    //Sets the GSM Module in Text Mode
+   delay(5000); 
+  //mySerial.print("AT+CMGF=0\r");    //Sets the GSM Module in Text Mode
+  //delay(5000); 
+  
+  mySerial.print("ATD+923244544029;\r");    //Sets the GSM Module in Text Mode
+  delay(10000); 
+ 
+  while(digitalRead(9)==LOW);
+ }
+ }
